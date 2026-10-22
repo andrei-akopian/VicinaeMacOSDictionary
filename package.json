@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
+  "name": "macos-dictionary",
+  "title": "macOS Dictionary",
+  "description": "Search definitions from dictionaries enabled in the macOS Dictionary app.",
+  "categories": ["Productivity"],
+  "license": "MIT",
+  "author": "andrei",
+  "platforms": ["macOS"],
+  "icon": "dictionary.png",
+  "commands": [
+    {
+      "name": "search-dictionary",
+      "title": "Search Dictionary",
+      "subtitle": "Look up a word in macOS Dictionary",
+      "description": "Search all dictionaries enabled in the macOS Dictionary app.",
+      "mode": "view",
+      "keywords": ["dictionary", "define", "definition", "word", "thesaurus"]
+    }
+  ],
+  "scripts": {
+    "build": "vici build",
+    "dev": "vici develop",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vicinae/api": "^0.29.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}
