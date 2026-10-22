@@ -1,6 +1,6 @@
 # macOS Dictionary for Vicinae
 
-A small Vicinae extension that searches the dictionaries enabled in Apple's Dictionary app. Lookups are provided by macOS Dictionary Services, so definitions work offline and use the user's installed dictionaries.
+A small Vicinae extension that searches the dictionaries enabled in Apple's Dictionary app. Local dictionaries work offline; Wikipedia entries may require a network connection.
 
 ## Requirements
 
@@ -25,7 +25,9 @@ To build a release extension, run `npm run build` from an environment where Vici
 - This extension is macOS-only.
 - Enable or disable lookup sources in Dictionary.app → Settings.
 - **Open in Dictionary** hands the entry off to the system `dict://` URL handler.
-- The helper uses the public `DCSCopyTextDefinition` API and does not parse dictionary bundles or use network services.
+- Results are queried separately from each active Dictionary.app source, so the same word can appear once per matching dictionary.
+- macOS does not expose a public API for enumerating per-dictionary results. The helper uses undocumented Dictionary Services symbols and the `DCSActiveDictionaries` preference to enumerate sources; Apple could change these between macOS releases.
+- The extension does not parse or bundle dictionary data.
 
 ## License
 

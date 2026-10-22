@@ -6,13 +6,14 @@ import { promisify } from "node:util";
 import { environment } from "@vicinae/api";
 
 const execFileAsync = promisify(execFile);
-const definitionCache = new Map<string, string | null>();
-let helperBuild: Promise<string> | undefined;
-
-function errorCode(error: unknown): number | undefined {
-  if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
-  return typeof error.code === "number" ? error.code : undefined;
+export interface DictionaryEntry {
+  identifier: string;
+  dictionary: string;
+  definition: string;
 }
+
+const definitionCache = new Map<string, DictionaryEntry[]>();
+let helperBuild: Promise<string> | undefined;
 
 async function compileHelper(): Promise<string> {
   if (process.platform !== "darwin") {
@@ -60,12 +61,12 @@ function getHelperPath(): Promise<string> {
   return helperBuild;
 }
 
-export async function lookupDefinition(term: string): Promise<string | null> {
+export async function lookupDefinitions(term: string): Promise<DictionaryEntry[]> {
   const normalizedTerm = term.trim();
-  if (!normalizedTerm) return null;
+  if (!normalizedTerm) return [];
 
   const cacheKey = normalizedTerm.toLowerCase();
-  if (definitionCache.has(cacheKey)) return definitionCache.get(cacheKey) ?? null;
+  if (definitionCache.has(cacheKey)) return definitionCache.get(cacheKey) ?? [];
 
   const helperPath = await getHelperPath();
   try {
@@ -74,15 +75,11 @@ export async function lookupDefinition(term: string): Promise<string | null> {
       timeout: 5_000,
       maxBuffer: 2 * 1024 * 1024,
     });
-    const definition = stdout.trim();
-    const result = definition || null;
+    const result = JSON.parse(stdout) as DictionaryEntry[];
+    if (!Array.isArray(result)) throw new Error("Invalid Dictionary response.");
     definitionCache.set(cacheKey, result);
     return result;
-  } catch (error) {
-    if (errorCode(error) === 1) {
-      definitionCache.set(cacheKey, null);
-      return null;
-    }
+  } catch {
     throw new Error("The macOS Dictionary lookup failed. Please try again.");
   }
 }

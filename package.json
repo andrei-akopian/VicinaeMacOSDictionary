@@ -21,7 +21,8 @@
   "scripts": {
     "build": "vici build",
     "dev": "vici develop",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:multi-source": "node --test tests/multi-source.test.mjs"
   },
   "dependencies": {
     "@vicinae/api": "^0.29.2"

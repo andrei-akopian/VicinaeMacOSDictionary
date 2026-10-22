@@ -1,11 +1,11 @@
 import { Action, ActionPanel, List } from "@vicinae/api";
 import { useEffect, useState } from "react";
-import { formatDefinition, lookupDefinition } from "./dictionary";
+import { formatDefinition, lookupDefinitions, type DictionaryEntry } from "./dictionary";
 
 export default function SearchDictionary() {
   const [query, setQuery] = useState("");
-  const [definition, setDefinition] = useState<string | null>(null);
-  const [definitionFor, setDefinitionFor] = useState("");
+  const [entries, setEntries] = useState<DictionaryEntry[]>([]);
+  const [resultsFor, setResultsFor] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -13,8 +13,8 @@ export default function SearchDictionary() {
     const term = query.trim();
     let cancelled = false;
 
-    setDefinition(null);
-    setDefinitionFor("");
+    setEntries([]);
+    setResultsFor("");
     setError(null);
 
     if (!term) {
@@ -24,11 +24,11 @@ export default function SearchDictionary() {
 
     setIsLoading(true);
     const timeout = setTimeout(() => {
-      void lookupDefinition(term)
-        .then((result) => {
+      void lookupDefinitions(term)
+        .then((resultEntries) => {
           if (cancelled) return;
-          setDefinition(result);
-          setDefinitionFor(result ? term : "");
+          setEntries(resultEntries);
+          setResultsFor(resultEntries.length ? term : "");
         })
         .catch((lookupError: unknown) => {
           if (cancelled) return;
@@ -57,7 +57,7 @@ export default function SearchDictionary() {
     emptyDescription = "Checking your enabled macOS dictionaries.";
   } else if (trimmedQuery) {
     emptyTitle = "No definition found";
-    emptyDescription = `No entry for “${trimmedQuery}”. Check that dictionaries are enabled in Dictionary.app.`;
+    emptyDescription = `No entry for “${trimmedQuery}” in your enabled dictionaries. Check Dictionary.app settings.`;
   }
 
   return (
@@ -68,23 +68,21 @@ export default function SearchDictionary() {
       searchText={query}
       onSearchTextChange={setQuery}
     >
-      {definition && definitionFor ? (
+      {entries.map((entry) => (
         <List.Item
-          key={definitionFor}
-          title={definitionFor}
+          key={entry.identifier}
+          title={entry.dictionary}
+          subtitle={resultsFor}
           icon="📖"
-          detail={<List.Item.Detail markdown={formatDefinition(definition)} />}
+          detail={<List.Item.Detail markdown={formatDefinition(entry.definition)} />}
           actions={
             <ActionPanel>
-              <Action.CopyToClipboard title="Copy Definition" content={definition} />
-              <Action.Open
-                title="Open in Dictionary"
-                target={`dict://${encodeURIComponent(definitionFor)}`}
-              />
+              <Action.CopyToClipboard title="Copy Definition" content={entry.definition} />
+              <Action.Open title="Open in Dictionary" target={`dict://${encodeURIComponent(resultsFor)}`} />
             </ActionPanel>
           }
         />
-      ) : null}
+      ))}
       <List.EmptyView title={emptyTitle} description={emptyDescription} icon="📚" />
     </List>
   );
