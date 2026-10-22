@@ -17,7 +17,7 @@ test("returns matching entries from multiple active Dictionary sources", async (
       encoding: "utf8",
       timeout: 60_000,
     });
-    const { stdout } = await execFileAsync(helperPath, ["apple"], {
+    const { stdout } = await execFileAsync(helperPath, ["define", "apple"], {
       encoding: "utf8",
       timeout: 20_000,
       maxBuffer: 2 * 1024 * 1024,
@@ -32,6 +32,33 @@ test("returns matching entries from multiple active Dictionary sources", async (
     assert.ok(sourceNames.has("Gran Diccionario Oxford - Español-Inglés • Inglés-Español"));
     assert.ok(sourceNames.has("牛津英汉汉英词典"));
     assert.ok(sourceNames.has("Wikipedia"));
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test("returns headword suggestions with readable snippets for a partial query", async () => {
+  const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), "vicinae-dictionary-test-"));
+  const helperPath = path.join(temporaryDirectory, "dictlook");
+
+  try {
+    await execFileAsync("swiftc", ["-O", "assets/dictlook.swift", "-o", helperPath], {
+      encoding: "utf8",
+      timeout: 60_000,
+    });
+    const { stdout } = await execFileAsync(helperPath, ["suggest", "hel"], {
+      encoding: "utf8",
+      timeout: 20_000,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    const suggestions = JSON.parse(stdout);
+    const suggestedTerms = new Set(suggestions.map((suggestion) => suggestion.term.toLowerCase()));
+    const hello = suggestions.find((suggestion) => suggestion.term.toLowerCase() === "hello");
+
+    assert.ok(hello, "expected a headword suggestion for hello");
+    assert.ok(hello.snippet.length > 20, "expected a useful definition snippet");
+    assert.ok(suggestedTerms.has("helfen"), "expected a German headword suggestion");
+    assert.ok(suggestedTerms.has("helado"), "expected a Spanish headword suggestion");
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
   }

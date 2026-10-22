@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/vicinaehq/vicinae/refs/heads/main/extra/schemas/extension.json",
   "name": "macos-dictionary",
+  "type": "module",
   "title": "macOS Dictionary",
   "description": "Search definitions from dictionaries enabled in the macOS Dictionary app.",
   "categories": ["Productivity"],
@@ -22,6 +23,7 @@
     "build": "vici build",
     "dev": "vici develop",
     "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
     "test:multi-source": "node --test tests/multi-source.test.mjs"
   },
   "dependencies": {

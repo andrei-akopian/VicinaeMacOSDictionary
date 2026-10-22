@@ -12,7 +12,13 @@ export interface DictionaryEntry {
   definition: string;
 }
 
+export interface DictionarySuggestion {
+  term: string;
+  snippet: string;
+}
+
 const definitionCache = new Map<string, DictionaryEntry[]>();
+const suggestionCache = new Map<string, DictionarySuggestion[]>();
 let helperBuild: Promise<string> | undefined;
 
 async function compileHelper(): Promise<string> {
@@ -61,6 +67,20 @@ function getHelperPath(): Promise<string> {
   return helperBuild;
 }
 
+async function runHelper<T>(mode: "define" | "suggest", term: string): Promise<T> {
+  const helperPath = await getHelperPath();
+  try {
+    const { stdout } = await execFileAsync(helperPath, [mode, term], {
+      encoding: "utf8",
+      timeout: 15_000,
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    return JSON.parse(stdout) as T;
+  } catch {
+    throw new Error("The macOS Dictionary lookup failed. Please try again.");
+  }
+}
+
 export async function lookupDefinitions(term: string): Promise<DictionaryEntry[]> {
   const normalizedTerm = term.trim();
   if (!normalizedTerm) return [];
@@ -68,27 +88,30 @@ export async function lookupDefinitions(term: string): Promise<DictionaryEntry[]
   const cacheKey = normalizedTerm.toLowerCase();
   if (definitionCache.has(cacheKey)) return definitionCache.get(cacheKey) ?? [];
 
-  const helperPath = await getHelperPath();
-  try {
-    const { stdout } = await execFileAsync(helperPath, [normalizedTerm], {
-      encoding: "utf8",
-      timeout: 5_000,
-      maxBuffer: 2 * 1024 * 1024,
-    });
-    const result = JSON.parse(stdout) as DictionaryEntry[];
-    if (!Array.isArray(result)) throw new Error("Invalid Dictionary response.");
-    definitionCache.set(cacheKey, result);
-    return result;
-  } catch {
-    throw new Error("The macOS Dictionary lookup failed. Please try again.");
-  }
+  const result = await runHelper<DictionaryEntry[]>("define", normalizedTerm);
+  if (!Array.isArray(result)) throw new Error("The macOS Dictionary returned an invalid response.");
+  definitionCache.set(cacheKey, result);
+  return result;
+}
+
+export async function lookupSuggestions(term: string): Promise<DictionarySuggestion[]> {
+  const normalizedTerm = term.trim();
+  if (!normalizedTerm) return [];
+
+  const cacheKey = normalizedTerm.toLowerCase();
+  if (suggestionCache.has(cacheKey)) return suggestionCache.get(cacheKey) ?? [];
+
+  const result = await runHelper<DictionarySuggestion[]>("suggest", normalizedTerm);
+  if (!Array.isArray(result)) throw new Error("The macOS Dictionary returned an invalid response.");
+  suggestionCache.set(cacheKey, result);
+  return result;
 }
 
 function escapeMarkdown(text: string): string {
   return text.replace(/([\\`*_{}\[\]()#+.!|>~-])/g, "\\$1");
 }
 
-export function formatDefinition(text: string): string {
+export function formatDefinition(text: string, headingLevel = 1): string {
   const segments = text.replace(/\r\n?/g, "\n").trim().split(/\s*▸\s*/u);
   const overview = segments.shift()?.trim() ?? "";
   const divider = overview.indexOf("|");
@@ -97,7 +120,7 @@ export function formatDefinition(text: string): string {
   const examples = segments.map((segment) => segment.trim()).filter(Boolean);
 
   return [
-    `# ${escapeMarkdown(heading)}`,
+    `${"#".repeat(Math.min(6, Math.max(1, headingLevel)))} ${escapeMarkdown(heading)}`,
     body ? escapeMarkdown(body) : "",
     examples.length ? examples.map((example) => `- ${escapeMarkdown(example)}`).join("\n") : "",
   ]

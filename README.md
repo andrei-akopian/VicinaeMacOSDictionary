@@ -2,6 +2,8 @@
 
 A small Vicinae extension that searches the dictionaries enabled in Apple's Dictionary app. Local dictionaries work offline; Wikipedia entries may require a network connection.
 
+While typing, the command shows system spell-check completions that are verified against active Dictionary.app sources, with a short definition preview. Selecting a word opens all matching dictionary definitions together. The initial view includes the 20 most recently selected words and their previews.
+
 ## Requirements
 
 - macOS
