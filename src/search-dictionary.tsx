@@ -8,6 +8,7 @@ import {
   type DictionarySuggestion,
 } from "./dictionary";
 import { loadRecentTerms, rememberRecentTerm, type RecentTerm } from "./recent-terms";
+import { suggestionsForQueryChange } from "./search-state";
 
 interface DictionaryDetailProps {
   term: string;
@@ -104,7 +105,7 @@ export default function SearchDictionary() {
   useEffect(() => {
     const term = query.trim();
     let cancelled = false;
-    setSuggestions([]);
+    setSuggestions((current) => suggestionsForQueryChange(current, term));
     setError(null);
 
     if (!term) {
