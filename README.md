@@ -1,17 +1,28 @@
-# macOS Dictionary for Vicinae
+# Dictionary for Vicinae (MacOS)
 
-A small Vicinae extension that searches the dictionaries enabled in Apple's Dictionary app. Local dictionaries work offline; Wikipedia entries may require a network connection.
+> [!IMPORTANT]
+> This extension uses MacOS builtin dictionary app. It is MacOS specific and will *not* work on other platforms.
 
-While typing, the command shows system spell-check completions that are verified against active Dictionary.app sources, with a short definition preview. Selecting a word opens all matching dictionary definitions together. The initial view includes the 20 most recently selected words and their previews.
+A dictionary extension for [Vicinae](https://github.com/vicinaehq/vicinae) that uses Apple's existing dictionary for lookup. This mimics the functionality of [Raycast](https://www.raycast.com/) builtin dictionary feature, [missing from Vicinae due to linux compatibility reasons](https://github.com/vicinaehq/vicinae/issues/1298).
 
-## Requirements
+Implementation is in React and Swift.
+
+Many similar extensions exist on the [Raycast](https://www.raycast.com/store) and [Vicinae](https://www.vicinae.com/extensions) extension stores. Look there if you don't like this one.
+
+<img src="./assets/screenshots/vicinae.png" width="50%">
+<img src="./assets/screenshots/blank.png" width="50%">
+<img src="./assets/screenshots/typing.png" width="50%">
+<img src="./assets/screenshots/result.png" width="50%">
+<img src="./assets/screenshots/recent.png" width="50%">
+
+### Requirements
 
 - macOS
 - Vicinae
 - Node.js 20 or newer and npm
 - Xcode Command Line Tools (`xcode-select --install`), needed to compile the Swift lookup helper on its first search
 
-## Install and develop
+## Install
 
 ```sh
 npm install
@@ -33,4 +44,6 @@ To build a release extension, run `npm run build` from an environment where Vici
 
 ## License
 
-MIT
+This extension was developed using ChatGPT-6 Luna and GLM-5.3-Flash
+
+[MIT](./LICENSE.md)
