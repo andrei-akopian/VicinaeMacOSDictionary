@@ -1,11 +1,11 @@
 # Dictionary for Vicinae (MacOS)
 
 > [!IMPORTANT]
-> This extension uses MacOS builtin dictionary app. It is MacOS specific and will *not* work on other platforms.
+> Extension uses MacOS [builtin dictionary app](https://support.apple.com/en-ca/guide/dictionary/welcome/mac), which is MacOS specific and won't work on other platforms.
 
-A dictionary extension for [Vicinae](https://github.com/vicinaehq/vicinae) that uses Apple's existing dictionary for lookup. This mimics the functionality of [Raycast](https://www.raycast.com/) builtin dictionary feature, which is [missing from Vicinae due to linux compatibility reasons](https://github.com/vicinaehq/vicinae/issues/1298).
+A dictionary extension for [Vicinae](https://github.com/vicinaehq/vicinae) that uses Apple's existing dictionary for lookup. This mimics the functionality of [Raycast](https://www.raycast.com/) builtin dictionary feature, which is [missing from Vicinae for to Linux compatibility reasons](https://github.com/vicinaehq/vicinae/issues/1298).
 
-Implementation is in React and Swift.
+Implemented by ChatGPT-6 Luna and GLM-5.3-Flash in React and Swift.
 
 Many similar extensions exist on the [Raycast](https://www.raycast.com/store) and [Vicinae](https://www.vicinae.com/extensions) extension stores. Look there if you don't like this one.
 
@@ -25,6 +25,15 @@ Many similar extensions exist on the [Raycast](https://www.raycast.com/store) an
 - Xcode Command Line Tools (`xcode-select --install`), needed to compile the Swift lookup helper on its first search
 
 ## Install
+
+Extension is *not* currently available on Vicinae extension store. To install from source, clone the repository:
+
+```sh
+git clone https://github.com/andrei-akopian/VicinaeMacOSDictionary
+cd VicinaeMacOSDictionary
+```
+
+and run
 
 ```sh
 npm install
