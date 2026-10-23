@@ -3,17 +3,19 @@
 > [!IMPORTANT]
 > This extension uses MacOS builtin dictionary app. It is MacOS specific and will *not* work on other platforms.
 
-A dictionary extension for [Vicinae](https://github.com/vicinaehq/vicinae) that uses Apple's existing dictionary for lookup. This mimics the functionality of [Raycast](https://www.raycast.com/) builtin dictionary feature, [missing from Vicinae due to linux compatibility reasons](https://github.com/vicinaehq/vicinae/issues/1298).
+A dictionary extension for [Vicinae](https://github.com/vicinaehq/vicinae) that uses Apple's existing dictionary for lookup. This mimics the functionality of [Raycast](https://www.raycast.com/) builtin dictionary feature, which is [missing from Vicinae due to linux compatibility reasons](https://github.com/vicinaehq/vicinae/issues/1298).
 
 Implementation is in React and Swift.
 
 Many similar extensions exist on the [Raycast](https://www.raycast.com/store) and [Vicinae](https://www.vicinae.com/extensions) extension stores. Look there if you don't like this one.
 
+<p float="left">
 <img src="./assets/screenshots/vicinae.png" width="50%">
 <img src="./assets/screenshots/blank.png" width="50%">
 <img src="./assets/screenshots/typing.png" width="50%">
 <img src="./assets/screenshots/result.png" width="50%">
 <img src="./assets/screenshots/recent.png" width="50%">
+</p>
 
 ### Requirements
 
@@ -41,9 +43,10 @@ To build a release extension, run `npm run build` from an environment where Vici
 - Results are queried separately from each active Dictionary.app source, so the same word can appear once per matching dictionary.
 - macOS does not expose a public API for enumerating per-dictionary results. The helper uses undocumented Dictionary Services symbols and the `DCSActiveDictionaries` preference to enumerate sources; Apple could change these between macOS releases.
 - The extension does not parse or bundle dictionary data.
+- [ ] TODO publish on Vicinae store after testing.
 
 ## License
 
-This extension was developed using ChatGPT-6 Luna and GLM-5.3-Flash
+This extension was developed using ChatGPT-6 Luna and GLM-5.3-Flash.
 
-[MIT](./LICENSE.md)
+[(this) Github Repo](https://github.com/andrei-akopian/VicinaeMacOSDictionary) and [MIT](./LICENSE.md) Licensed
