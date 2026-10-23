@@ -18,6 +18,7 @@ function createMemoryStorage() {
   return {
     getItem: async (key) => values.get(key),
     setItem: async (key, value) => values.set(key, value),
+    peek: (key) => values.get(key),
   };
 }
 
@@ -35,4 +36,47 @@ test("recent terms are newest-first, deduplicated, and limited to twenty", async
   assert.equal(recent[0].snippet, "Updated definition");
   assert.equal(recent.some((item) => item.term === "word-1"), false);
   assert.equal(recent.filter((item) => item.term.toLowerCase() === "word-5").length, 1);
+});
+
+test("loading repairs and deduplicates a corrupted or duplicated store", async () => {
+  const storage = createMemoryStorage();
+  await storage.setItem(
+    "dictionary-recent-terms",
+    JSON.stringify([
+      { term: "hello", snippet: "greeting" },
+      { term: "HELLO", snippet: "duplicate casing" },
+      { term: "", snippet: "empty terms are dropped" },
+      { term: "world", snippet: 42 },
+      "junk",
+      null,
+    ]),
+  );
+
+  const recent = await loadRecentTerms(storage);
+  assert.deepEqual(recent, [
+    { term: "hello", snippet: "greeting" },
+    { term: "world", snippet: "" },
+  ]);
+});
+
+test("concurrent remembers never lose updates", async () => {
+  const storage = createMemoryStorage();
+
+  await Promise.all(
+    Array.from({ length: 25 }, (_, index) =>
+      rememberRecentTerm(`cw-${index}`, `Snippet ${index}`, storage),
+    ),
+  );
+
+  const raw = await storage.peek("dictionary-recent-terms");
+  const recent = await loadRecentTerms(storage);
+
+  // Without write serialization this could throw on truncated JSON.
+  assert.doesNotThrow(() => JSON.parse(raw));
+  assert.equal(recent.length, 20);
+  assert.equal(new Set(recent.map((item) => item.term)).size, 20);
+  for (const item of recent) {
+    assert.match(item.term, /^cw-\d+$/);
+    assert.match(item.snippet, /^Snippet \d+$/);
+  }
 });

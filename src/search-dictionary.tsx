@@ -1,12 +1,12 @@
 import { Action, ActionPanel, Detail, List, LocalStorage } from "@vicinae/api";
 import { useEffect, useState } from "react";
 import {
-  formatDefinition,
   lookupDefinitions,
   lookupSuggestions,
   type DictionaryEntry,
   type DictionarySuggestion,
 } from "./dictionary";
+import { escapeMarkdown, formatDefinition } from "./markdown";
 import { loadRecentTerms, rememberRecentTerm, type RecentTerm } from "./recent-terms";
 import { suggestionsForQueryChange } from "./search-state";
 
@@ -20,6 +20,7 @@ function DictionaryDetail({ term, snippet, onRecentTermsChange }: DictionaryDeta
   const [entries, setEntries] = useState<DictionaryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,17 +48,18 @@ function DictionaryDetail({ term, snippet, onRecentTermsChange }: DictionaryDeta
     return () => {
       cancelled = true;
     };
-  }, [term, snippet, onRecentTermsChange]);
+  }, [term, snippet, onRecentTermsChange, retryToken]);
 
+  const heading = escapeMarkdown(term);
   const markdown = error
-    ? `# ${term}\n\n${error}`
+    ? `# ${heading}\n\n${error}`
     : isLoading
-      ? `# ${term}\n\nSearching your enabled dictionaries…`
+      ? `# ${heading}\n\nSearching your enabled dictionaries…`
       : entries.length
-        ? `# ${term}\n\n${entries
-            .map((entry) => `## ${entry.dictionary}\n\n${formatDefinition(entry.definition, 3)}`)
+        ? `# ${heading}\n\n${entries
+            .map((entry) => `## ${escapeMarkdown(entry.dictionary)}\n\n${formatDefinition(entry.definition, 3)}`)
             .join("\n\n---\n\n")}`
-        : `# ${term}\n\nNo definition found in your enabled dictionaries.`;
+        : `# ${heading}\n\nNo definition found in your enabled dictionaries.`;
   const allDefinitions = entries
     .map((entry) => `${entry.dictionary}\n${entry.definition}`)
     .join("\n\n");
@@ -69,6 +71,9 @@ function DictionaryDetail({ term, snippet, onRecentTermsChange }: DictionaryDeta
       actions={
         <ActionPanel>
           <Action.Open title="Open in Dictionary" target={`dict://${encodeURIComponent(term)}`} />
+          {error ? (
+            <Action title="Try Again" onAction={() => setRetryToken((token) => token + 1)} />
+          ) : null}
           {allDefinitions ? (
             <Action.CopyToClipboard title="Copy All Definitions" content={allDefinitions} />
           ) : null}
@@ -127,7 +132,9 @@ export default function SearchDictionary() {
           if (!cancelled) setSuggestions(results);
         })
         .catch((lookupError: unknown) => {
-          if (!cancelled) setError(lookupError instanceof Error ? lookupError.message : String(lookupError));
+          if (cancelled) return;
+          setSuggestions([]);
+          setError(lookupError instanceof Error ? lookupError.message : String(lookupError));
         })
         .finally(() => {
           if (!cancelled) setIsLoading(false);

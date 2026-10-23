@@ -39,6 +39,7 @@ func activeDictionaries() -> [ActiveDictionary] {
     let identifiers = UserDefaults(suiteName: "com.apple.DictionaryServices")?
         .array(forKey: "DCSActiveDictionaries") as? [String] ?? []
 
+    var seenIdentifiers = Set<String>()
     return identifiers.compactMap { activeIdentifier in
         let identifier: String
         if activeIdentifier.hasPrefix("/"),
@@ -48,6 +49,9 @@ func activeDictionaries() -> [ActiveDictionary] {
             identifier = activeIdentifier
         }
 
+        guard seenIdentifiers.insert(identifier).inserted else {
+            return nil
+        }
         guard let reference = createDictionaryWithIdentifier(identifier as CFString)?.takeRetainedValue() else {
             return nil
         }
@@ -139,6 +143,12 @@ guard !term.isEmpty else {
 }
 
 let dictionaries = activeDictionaries()
+
+if dictionaries.isEmpty {
+    // Lets the extension distinguish "nothing found" from a configuration
+    // problem without changing the JSON shape of successful responses.
+    fputs("vicinae-dictionary: no-active-dictionaries\n", stderr)
+}
 
 switch mode {
 case "define":

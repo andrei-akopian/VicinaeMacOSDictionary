@@ -11,6 +11,18 @@ export interface StringStorage {
 const RECENT_TERMS_KEY = "dictionary-recent-terms";
 const MAX_RECENT_TERMS = 20;
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isRecentTerm(value: unknown): value is { term: string; snippet: unknown } {
+  return (
+    isPlainObject(value) &&
+    typeof value.term === "string" &&
+    value.term.trim().length > 0
+  );
+}
+
 export async function loadRecentTerms(storage: StringStorage): Promise<RecentTerm[]> {
   const serialized = await storage.getItem(RECENT_TERMS_KEY);
   if (!serialized) return [];
@@ -18,23 +30,46 @@ export async function loadRecentTerms(storage: StringStorage): Promise<RecentTer
   try {
     const value: unknown = JSON.parse(serialized);
     if (!Array.isArray(value)) return [];
-    return value
-      .filter(
-        (item): item is RecentTerm =>
-          typeof item === "object" &&
-          item !== null &&
-          "term" in item &&
-          typeof item.term === "string" &&
-          "snippet" in item &&
-          typeof item.snippet === "string",
-      )
-      .slice(0, MAX_RECENT_TERMS);
+
+    const seen = new Set<string>();
+    const result: RecentTerm[] = [];
+    for (const item of value) {
+      if (!isRecentTerm(item)) continue;
+      const key = item.term.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      // Repair entries whose snippet field was lost or corrupted.
+      result.push({
+        term: item.term,
+        snippet: typeof item.snippet === "string" ? item.snippet : "",
+      });
+      if (result.length >= MAX_RECENT_TERMS) break;
+    }
+    return result;
   } catch {
     return [];
   }
 }
 
-export async function rememberRecentTerm(
+let writeChain: Promise<unknown> = Promise.resolve();
+
+/**
+ * Serializes read-modify-write cycles so concurrent calls cannot lose
+ * each other's updates when several words are opened in quick succession.
+ */
+export function rememberRecentTerm(
+  term: string,
+  snippet: string,
+  storage: StringStorage,
+): Promise<RecentTerm[]> {
+  const write = writeChain
+    .catch(() => undefined)
+    .then(() => performRememberRecentTerm(term, snippet, storage));
+  writeChain = write.catch(() => undefined);
+  return write;
+}
+
+async function performRememberRecentTerm(
   term: string,
   snippet: string,
   storage: StringStorage,
