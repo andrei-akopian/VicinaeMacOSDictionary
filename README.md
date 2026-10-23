@@ -9,13 +9,13 @@ Implementation is in React and Swift.
 
 Many similar extensions exist on the [Raycast](https://www.raycast.com/store) and [Vicinae](https://www.vicinae.com/extensions) extension stores. Look there if you don't like this one.
 
-<p float="left">
-<img src="./assets/screenshots/vicinae.png" width="50%">
-<img src="./assets/screenshots/blank.png" width="50%">
-<img src="./assets/screenshots/typing.png" width="50%">
-<img src="./assets/screenshots/result.png" width="50%">
-<img src="./assets/screenshots/recent.png" width="50%">
-</p>
+<div align="center">
+<img src="./assets/screenshots/vicinae.png" width="355">
+<img src="./assets/screenshots/blank.png" width="355">
+<img src="./assets/screenshots/typing.png" width="355">
+<img src="./assets/screenshots/result.png" width="355">
+<img src="./assets/screenshots/recent.png" width="355">
+</div>
 
 ### Requirements
 
@@ -49,4 +49,4 @@ To build a release extension, run `npm run build` from an environment where Vici
 
 This extension was developed using ChatGPT-6 Luna and GLM-5.3-Flash.
 
-[(this) Github Repo](https://github.com/andrei-akopian/VicinaeMacOSDictionary) and [MIT](./LICENSE.md) Licensed
+[MIT](./LICENSE.md) Licensed and developed on [(this) Github Repository](https://github.com/andrei-akopian/VicinaeMacOSDictionary).
